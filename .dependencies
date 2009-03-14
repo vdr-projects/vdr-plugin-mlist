@@ -1,0 +1,8 @@
+mlist.o: mlist.c ../vdr/plugin.h ../vdr/i18n.h ../vdr/tools.h \
+  ../vdr/menuitems.h ../vdr/osdbase.h ../vdr/config.h ../vdr/font.h \
+  ../vdr/osd.h ../vdr/skins.h ../vdr/channels.h ../vdr/sources.h \
+  ../vdr/thread.h ../vdr/epg.h ../vdr/keys.h ../vdr/recording.h \
+  ../vdr/timers.h ../vdr/themes.h ../vdr/status.h ../vdr/device.h \
+  ../vdr/ci.h ../vdr/dvbsubtitle.h ../vdr/eit.h ../vdr/filter.h \
+  ../vdr/nit.h ../vdr/pat.h ../vdr/ringbuffer.h ../vdr/sdt.h \
+  ../vdr/sections.h ../vdr/spu.h ../vdr/player.h ../vdr/osdbase.h

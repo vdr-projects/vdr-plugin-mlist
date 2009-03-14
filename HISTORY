@@ -35,6 +35,7 @@ VDR Plugin 'mlist' Revision History
   report release-critical bugs as soon as possible. Further, translation 
   contributions (.po-files) are appreciated.
 
-2008-: Version 0.0.6
+2009-: Version 0.0.6
 - added french translations (provided by Bruno Roussel)
 - updated italian translations (provided by Diego Pierotto)
+- removed some old code from Makefile
