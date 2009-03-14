@@ -11,7 +11,7 @@
 #include <vdr/osdbase.h>
 #include <time.h>
 
-static const char *VERSION        = "0.0.6";
+static const char *VERSION        = "1.0.0";
 static const char *DESCRIPTION    = trNOOP("Displays the message history");
 static const char *MAINMENUENTRY  = trNOOP("Message History");
 
@@ -55,10 +55,10 @@ private:
   char *msg;
   time_t msg_time;
 public:
-  cMessage(const char *Message) { 
-    msg = new char[strlen(Message)+1]; 
+  cMessage(const char *Message) {
+    msg = new char[strlen(Message)+1];
     msg_time = time(NULL);
-    strcpy(msg, Message); 
+    strcpy(msg, Message);
   }
   char *Message() { return msg; }
   time_t* MessageTime() { return &msg_time; }
@@ -146,7 +146,7 @@ public:
   virtual bool Service(const char *Id, void *Data = NULL);
   virtual const char **SVDRPHelpPages(void);
   virtual cString SVDRPCommand(const char *Command, const char *Option, int &ReplyCode);
-  
+
   // from cStatus
   virtual void OsdStatusMessage(const char *Message) { if (Message) mlist.Add(new cMessage(Message)); }
   // Message has been displayed in the status line of the menu
@@ -199,19 +199,19 @@ void cPluginMlist::Housekeeping(void)
   // Perform any cleanup or other regular tasks.
 }
 
-const char *cPluginMlist::MainMenuEntry(void) 
- { 
+const char *cPluginMlist::MainMenuEntry(void)
+ {
    if (!MlistConfig.iHideMenuEntry)
-    return tr(MAINMENUENTRY); 
+    return tr(MAINMENUENTRY);
    else
-    return NULL; 
+    return NULL;
  }
 
 cOsdObject *cPluginMlist::MainMenuAction(void)
 {
   // Displays the list of messages
   cMlistMenu *mlistMenu = new cMlistMenu(&mlist);
-  
+
   return mlistMenu;
 }
 
@@ -227,8 +227,8 @@ bool cPluginMlist::SetupParse(const char *Name, const char *Value)
   if      (!strcasecmp(Name, "HideMenuEntry")){
    MlistConfig.iHideMenuEntry = atoi(Value);
    return true;
-  } 
-  else 
+  }
+  else
    return false;
 }
 bool cPluginMlist::Service(const char *Id, void *Data)
@@ -247,7 +247,7 @@ const char **cPluginMlist::SVDRPHelpPages(void)
     "   Clear the Message History.",
     NULL
   };
-										      
+
   return HelpPages;
 }
 
