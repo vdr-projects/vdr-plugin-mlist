@@ -48,7 +48,7 @@ OBJS = $(PLUGIN).o
 
 ### Targets:
 all: libvdr-$(PLUGIN).so i18n
-	@cp $@ $(LIBDIR)/$@.$(APIVERSION)
+	@cp $< $(LIBDIR)/$<.$(APIVERSION)
 
 %.o: %.c
 	$(CXX) $(CXXFLAGS) -c $(DEFINES) $(INCLUDES) $<
