@@ -42,5 +42,5 @@ VDR Plugin 'mlist' Revision History
 
 2009-03-15: Version 1.0.1
 - fixed Makefile to create a correct named plugin library 
-  (reported by Tobias Grimm)
+  (patch provided by Tobias Grimm)
  
