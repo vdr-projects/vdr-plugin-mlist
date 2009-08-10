@@ -20,7 +20,7 @@ CXXFLAGS ?= -fPIC -g -O2 -Wall -Woverloaded-virtual
 
 ### The directory environment:
 
-VDRDIR = ../../..
+VDRDIR ?= ../../..
 LIBDIR = ../../lib
 TMPDIR = /tmp
 
