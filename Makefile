@@ -21,7 +21,7 @@ CXXFLAGS ?= -fPIC -g -O2 -Wall -Woverloaded-virtual
 ### The directory environment:
 
 VDRDIR ?= ../../..
-LIBDIR = ../../lib
+LIBDIR = $(VDRDIR)/PLUGINS/lib
 TMPDIR = /tmp
 
 ### Allow user defined options to overwrite defaults:
