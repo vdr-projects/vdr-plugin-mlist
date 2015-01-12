@@ -21,3 +21,7 @@ Note to translators:
 If you translate this plugin to your language, please do so in creating 
 a language.po file from the *.pot template file located in the po/ subdir 
 after compiling the plugin. 
+
+# Screenshots
+
+[![Screenshot 1](https://jowi24.github.io/vdr-mlist/screenshot-mlist-1.jpg)](https://jowi24.github.io/vdr-mlist/screenshot-mlist-1.jpg)
