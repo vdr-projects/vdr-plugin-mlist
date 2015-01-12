@@ -11,7 +11,7 @@
 #include <vdr/osdbase.h>
 #include <time.h>
 
-static const char *VERSION        = "1.0.1";
+static const char *VERSION        = "1.0.2";
 static const char *DESCRIPTION    = trNOOP("Displays the message history");
 static const char *MAINMENUENTRY  = trNOOP("Message History");
 
