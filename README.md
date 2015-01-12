@@ -1,6 +1,9 @@
+# Overview
+
 This is a "plugin" for the Video Disk Recorder (VDR).
 
-Written by:                  Joachim Wilke <vdr@joachim-wilke.de>
+Written by:
+* Joachim Wilke [vdr (at) joachim (minus) wilke (dot) de]
 
 Project's homepage:          https://github.com/jowi24/vdr-mlist
 
@@ -8,7 +11,10 @@ Latest version available at: https://github.com/jowi24/vdr-mlist/releases
 
 See the file COPYING for license information.
 
-Description:
+---
+
+# Description
+
 The Plugin displays a list of all shown OSD-Messages since VDR start up.
 
 Note to translators:
