@@ -9,6 +9,19 @@
 #
 PLUGIN = mlist
 
+### Set this to '0' if you don't want mlist to auto-configure itself
+AUTOCONFIG=1
+
+### If AUTOCONFIG is not active,you can manually enable the
+### optional modules or patches for other plugins:
+
+ifeq ($(AUTOCONFIG),0)
+	# If you want to use Perl compatible regular expressions (PCRE) or libtre for
+	# unlimited fuzzy searching, uncomment this and set the value to pcre/pcre2
+	# or tre; also have a look at INSTALL for further notes on this.
+	#REGEXLIB = pcre2
+endif
+
 ### The version number of this plugin (taken from the main source file):
 
 VERSION = $(shell grep 'static const char \*VERSION *=' $(PLUGIN).c | awk '{ print $$6 }' | sed -e 's/[";]//g')
@@ -30,6 +43,34 @@ endif
 VDRDIR ?= ../../..
 LIBDIR = $(VDRDIR)/PLUGINS/lib
 TMPDIR = /tmp
+
+### The module configuration:
+
+ifeq ($(AUTOCONFIG),1)
+	ifeq (exists, $(shell $(PKG_CONFIG) libpcre2-posix && echo exists))
+		REGEXLIB = pcre2
+	else ifeq (exists, $(shell $(PKG_CONFIG) libpcre && echo exists))
+		REGEXLIB = pcre
+	else ifeq (exists, $(shell $(PKG_CONFIG) tre && echo exists))
+		REGEXLIB = tre
+	endif
+endif
+
+### The PCRE settings:
+
+ifeq ($(REGEXLIB), pcre2)
+	LIBS += $(shell pcre2-config --libs-posix)
+	INCLUDE += $(shell pcre2-config --cflags)
+	DEFINES += -DHAVE_PCRE2POSIX
+else ifeq ($(REGEXLIB), pcre)
+	LIBS += $(shell pcre-config --libs-posix)
+	INCLUDE += $(shell pcre-config --cflags)
+	DEFINES += -DHAVE_PCREPOSIX
+else ifeq ($(REGEXLIB), tre)
+	LIBS += -L$(shell $(PKG_CONFIG) --variable=libdir tre) $(shell $(PKG_CONFIG) --libs tre)
+	DEFINES += -DHAVE_LIBTRE
+	INCLUDE += $(shell $(PKG_CONFIG) --cflags tre)
+endif
 
 ### Allow user defined options to overwrite defaults:
 

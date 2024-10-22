@@ -11,27 +11,39 @@
 #include <vdr/osdbase.h>
 #include <time.h>
 
-static const char *VERSION        = "1.0.2";
+#if defined(HAVE_PCRE2POSIX)
+#include <pcre2posix.h>
+#elif defined(HAVE_PCREPOSIX)
+#include <pcreposix.h>
+#elif defined(HAVE_LIBTRE)
+#include <tre/regex.h>
+#else
+#include <regex.h>
+#endif
+
+static const char *VERSION        = "1.1.0";
 static const char *DESCRIPTION    = trNOOP("Displays the message history");
 static const char *MAINMENUENTRY  = trNOOP("Message History");
+
+static int bytes;       // to satisfy dropped return-value warning
 
 // --------------------------- cMlistConfig-------------------------------------
 struct cMlistConfig {
 public:
   cMlistConfig(void);
   int  iHideMenuEntry;
+  char sExcludePattern[256];
 };
 
 cMlistConfig MlistConfig;
 
 cMlistConfig::cMlistConfig(void) {
   iHideMenuEntry = false;
+  sExcludePattern[0] = '\0';
 }
 
 // --------------------------- cMenuSetupMlist ----------------------------------------
 class cMenuSetupMlist : public cMenuSetupPage {
-private:
-  int  iNewHideMenuEntry;
 protected:
   virtual void Store(void);
 public:
@@ -39,13 +51,13 @@ public:
 };
 
 void cMenuSetupMlist::Store(void) {
-  MlistConfig.iHideMenuEntry = iNewHideMenuEntry;
   SetupStore("HideMenuEntry", MlistConfig.iHideMenuEntry);
+  SetupStore("ExcludePattern", MlistConfig.sExcludePattern);
 }
 
 cMenuSetupMlist::cMenuSetupMlist(void) {
-  iNewHideMenuEntry = MlistConfig.iHideMenuEntry;
-  Add(new cMenuEditBoolItem (tr("Hide mainmenu entry"),     &iNewHideMenuEntry));
+  Add(new cMenuEditBoolItem (tr("Hide mainmenu entry"), &MlistConfig.iHideMenuEntry));
+  Add(new cMenuEditStrItem (tr("Exclude messages with pattern"), MlistConfig.sExcludePattern, sizeof(MlistConfig.sExcludePattern)));
 }
 
 // --------------------------- cMessage ----------------------------------------
@@ -89,13 +101,10 @@ void cMlistMenu::PopulateList() {
 // add new osditems
   for (cMessage *msg = mlist->Last(); msg; msg = mlist->Prev(msg)) {
     struct tm *broken_time = localtime(msg->MessageTime());
-    char *formatted_time;
-    asprintf(&formatted_time, "%02i:%02i:%02i", broken_time->tm_hour, broken_time->tm_min, broken_time->tm_sec);
-
-    Add(new cOsdItem(formatted_time, osUnknown, false));
-    Add(new cOsdItem(msg->Message()));
-
-    free(formatted_time);
+    char *formatted_message;
+    bytes = asprintf(&formatted_message, "%02i:%02i:%02i   %s", broken_time->tm_hour, broken_time->tm_min, broken_time->tm_sec, msg->Message());
+    Add(new cOsdItem(formatted_message, osUnknown, true));
+    free(formatted_message);
   }
   Display();
 }
@@ -103,15 +112,14 @@ void cMlistMenu::PopulateList() {
 eOSState cMlistMenu::ProcessKey(eKeys Key) {
 
   eOSState state = cOsdMenu::ProcessKey(Key);
-
   if (state == osUnknown) {
     switch(Key) {
       case kYellow:
-          ClearList();
-	  state = osContinue;
+        ClearList();
+        state = osContinue;
         break;
       default:
-        state = osUnknown;
+        break;
     }
   }
   return state;
@@ -148,7 +156,21 @@ public:
   virtual cString SVDRPCommand(const char *Command, const char *Option, int &ReplyCode);
 
   // from cStatus
-  virtual void OsdStatusMessage(const char *Message) { if (Message) mlist.Add(new cMessage(Message)); }
+  virtual void OsdStatusMessage(const char *Message) { 
+    if (Message) {
+      bool include = true;
+      if (*MlistConfig.sExcludePattern) {
+        regex_t re;
+        if (regcomp(&re, MlistConfig.sExcludePattern, REG_EXTENDED | REG_NOSUB) == 0) {
+            include = (regexec(&re, Message, 0, NULL, 0) != 0);
+            regfree(&re);
+        }
+      }
+      if (include) {
+        mlist.Add(new cMessage(Message));
+      }
+    }
+  }
   // Message has been displayed in the status line of the menu
   // If Message is NULL, the status line has been cleared.
 };
@@ -201,17 +223,13 @@ void cPluginMlist::Housekeeping(void)
 
 const char *cPluginMlist::MainMenuEntry(void)
  {
-   if (!MlistConfig.iHideMenuEntry)
-    return tr(MAINMENUENTRY);
-   else
-    return NULL;
+   return !MlistConfig.iHideMenuEntry ? tr(MAINMENUENTRY) : NULL;
  }
 
 cOsdObject *cPluginMlist::MainMenuAction(void)
 {
   // Displays the list of messages
   cMlistMenu *mlistMenu = new cMlistMenu(&mlist);
-
   return mlistMenu;
 }
 
@@ -224,13 +242,17 @@ cMenuSetupPage *cPluginMlist::SetupMenu(void)
 bool cPluginMlist::SetupParse(const char *Name, const char *Value)
 {
   // Parse your own setup parameters and store their values.
-  if      (!strcasecmp(Name, "HideMenuEntry")){
-   MlistConfig.iHideMenuEntry = atoi(Value);
-   return true;
-  }
-  else
-   return false;
+  if (!strcasecmp(Name, "HideMenuEntry")){
+    MlistConfig.iHideMenuEntry = atoi(Value);
+    return true;
+  } 
+  else if (!strcasecmp(Name, "ExcludePattern")){
+    strn0cpy(MlistConfig.sExcludePattern, Value, sizeof(MlistConfig.sExcludePattern));
+    return true;
+  } else
+    return false;
 }
+
 bool cPluginMlist::Service(const char *Id, void *Data)
 {
   // Handle custom service requests from other plugins
@@ -242,12 +264,11 @@ const char **cPluginMlist::SVDRPHelpPages(void)
   // Return help text for SVDRP commands this plugin implements
   static const char *HelpPages[] = {
     "LSTM\n"
-    "   Print the Message History.",
+    "   Print the message history.",
     "DELM\n"
-    "   Clear the Message History.",
+    "   Clear the message history.",
     NULL
   };
-
   return HelpPages;
 }
 
@@ -258,11 +279,11 @@ cString cPluginMlist::SVDRPCommand(const char *Command, const char *Option, int 
     cString reply = "";
     cString temp;
     if (mlist.Count() == 0)
-      return cString::sprintf("Message History empty.");
+      return cString::sprintf("Message history empty.");
     for (cMessage *msg = mlist.Last(); msg; msg = mlist.Prev(msg)) {
       struct tm *broken_time = localtime(msg->MessageTime());
       char *formatted_time;
-      asprintf(&formatted_time, "%02i:%02i:%02i", broken_time->tm_hour, broken_time->tm_min, broken_time->tm_sec);
+      bytes = asprintf(&formatted_time, "%02i:%02i:%02i", broken_time->tm_hour, broken_time->tm_min, broken_time->tm_sec);
       reply = cString::sprintf("%s%s - %s\n", (const char *) reply, formatted_time, msg->Message());
       free(formatted_time);
     }
@@ -270,7 +291,7 @@ cString cPluginMlist::SVDRPCommand(const char *Command, const char *Option, int 
   }
   else if (strcasecmp(Command, "DELM") == 0){
     mlist.Clear();
-    return cString::sprintf("Message History cleared.");
+    return cString::sprintf("Message history cleared.");
   }
   return NULL;
 }

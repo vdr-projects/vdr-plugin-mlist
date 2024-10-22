@@ -10,7 +10,7 @@ msgstr ""
 "PO-Revision-Date: 2008-03-03 19:51+0100\n"
 "Last-Translator: Bruno ROUSSEL <bruno.roussel@free.fr>\n"
 "Language-Team:  <vdr@linuxtv.org>\n"
-"Language: \n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ISO-8859-15\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,6 +20,9 @@ msgstr "Effacer"
 
 msgid "Displays the message history"
 msgstr "Affiche l'historique des messages"
+
+msgid "Exclude messages with pattern"
+msgstr "Exclure les messages avec motif"
 
 msgid "Hide mainmenu entry"
 msgstr "Cacher l'entrée dans le menu principal"
